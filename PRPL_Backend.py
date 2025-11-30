@@ -7,7 +7,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-API_KEY = "AIzaSyAuaLHm8oaDfSgtiKD_M0amQ70bVTfZ888"
+API_KEY = ""
 genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel('gemini-2.0-flash')
@@ -110,5 +110,6 @@ def analyze_nutrition():
         abort(500, description="Error processing your request.")
 
 if __name__ == "__main__":
+
 
     app.run(host='0.0.0.0', port=5000, debug=True)
