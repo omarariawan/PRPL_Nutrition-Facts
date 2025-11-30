@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Safety Analyzer</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the mobile container look */
+        body {
+            background-color: #f0f4f8; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        #app-container {
+            width: 100%;
+            max-width: 400px; /* Standard mobile width */
+            min-height: 800px;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0, 10, 20, 0.1);
+            border-radius: 30px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: all 0.3s ease-in-out;
+        }
+        /* Style for the input box in Step 2 to match the clean UI */
+        #disease-input {
+            border: 1px solid #e5e7eb;
+            resize: none;
+            padding: 1rem;
+            border-radius: 12px;
+            min-height: 150px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #disease-input:focus {
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container" class="p-6">
+    
+    <!-- Loading/Status Indicator -->
+    <div id="status-message" class="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center p-8 z-20 hidden transition-opacity duration-300">
+        <svg id="loading-spinner" class="animate-spin h-8 w-8 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p id="status-text" class="text-center font-medium text-gray-700">Connecting...</p>
+    </div>
+
+    <!-- Step 1: Welcome & Login Screen -->
+    <div id="step-1" class="step-screen">
+        <div class="mb-10">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">LabelWise</h1>
+            <p class="text-sm text-gray-500">1. Welcome & Login</p>
+        </div>
+
+        <div class="h-64 flex items-center justify-center">
+            <img src="https://placehold.co/150x150/4f46e5/ffffff?text=Secure" alt="Security icon" class="rounded-full shadow-lg"/>
+        </div>
+
+        <p class="text-xl font-semibold mb-4 text-center">Your Health, Secured.</p>
+
+        <p class="text-lg text-gray-600 mb-8 text-center">Your unique profile is linked. We're ready to personalize your nutrition safety checks.</p>
+        
+        <div id="auth-status" class="mb-6 text-center text-sm font-medium">
+            <!-- Auth status will be dynamically updated here -->
+        </div>
+        
+        <button id="start-app-btn" class="w-full py-4 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 transition duration-150" disabled>Start Application</button>
+        <p class="mt-4 text-xs text-gray-400 text-center">User ID: <span id="display-user-id" class="font-mono text-gray-600">Loading...</span></p>
+    </div>
+
+    <!-- Step 2: Onboarding -->
+    <div id="step-2" class="step-screen hidden">
+        <div class="mb-10">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">LabelWise</h1>
+            <p class="text-sm text-gray-500">2. Profile Onboarding (Module 1)</p>
+        </div>
+
+        <p class="text-lg font-medium mb-4">In your own words, please describe your health needs, allergies, or dietary goals.</p>
+        
+        <textarea id="disease-input" placeholder="e.g. 'I am diabetic and allergic to shellfish. I need low-sodium options.'" class="w-full text-base mb-8"></textarea>
+        
+        <button id="submit-profile-btn" class="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl shadow-lg hover:bg-gray-700 transition duration-150">Submit</button>
+    </div>
+
+    <!-- Step 3: Confirmation -->
+    <div id="step-3" class="step-screen hidden">
+        <div class="mb-10">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Confirmation</h1>
+            <p class="text-sm text-gray-500">3. Profile Confirmation (Module 2)</p>
+        </div>
+
+        <p class="text-lg font-medium mb-4">OK, I've set up your profile. Please confirm this is correct:</p>
+
+        <div id="tag-container" class="flex flex-wrap gap-2 mb-6">
+            <!-- Tags will be injected here -->
+        </div>
+
+        <input type="text" id="manual-tag-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 mb-3" placeholder="+ Add Tag Manually">
+        <button id="add-tag-btn" class="w-full py-3 bg-blue-100 text-blue-600 font-semibold rounded-lg hover:bg-blue-200 transition duration-150">Add Tag</button>
+        
+        <button id="confirm-scanning-btn" class="w-full py-4 mt-12 bg-gray-900 text-white font-semibold rounded-xl shadow-lg hover:bg-gray-700 transition duration-150">Confirm & Start Scanning</button>
+    </div>
+
+    <!-- Step 4: Scan & Analyze -->
+    <div id="step-4" class="step-screen hidden">
+        <div class="mb-10">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Scan & Analyze</h1>
+            <p class="text-sm text-gray-500">4. Scan & Analyze (Module 3)</p>
+        </div>
+
+        <!-- The image scanning area -->
+        <div id="scan-box" class="h-96 bg-gray-100 border-4 border-dashed border-gray-300 rounded-xl flex items-center justify-center p-4 relative overflow-hidden">
+            <p class="text-center text-gray-500 font-medium">
+                Fit the ingredient list and nutrition<br>Inside the box
+            </p>
+            <img id="scanned-image-preview" class="absolute inset-0 w-full h-full object-cover hidden" alt="Scanned product image">
+        </div>
+        
+        <input type="file" id="image-upload" accept="image/*" class="hidden">
+        
+        <button id="analyze-btn" class="w-full py-4 mt-8 bg-blue-600 text-white font-semibold rounded-xl shadow-lg hover:bg-blue-500 transition duration-150">Analyze</button>
+        <button id="select-image-btn" class="w-full py-4 mt-4 bg-gray-200 text-gray-800 font-semibold rounded-xl hover:bg-gray-300 transition duration-150">Select Image</button>
+    </div>
+    
+    <!-- Step 5: The Verdict -->
+    <div id="step-5" class="step-screen hidden text-center">
+        <div class="mb-10">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Verdict</h1>
+            <p class="text-sm text-gray-500">5. The Verdict (Module 5)</p>
+        </div>
+        
+        <p id="category-text" class="text-sm font-medium text-gray-500 mb-4"></p>
+
+        <!-- Verdict Card -->
+        <div id="verdict-card" class="p-8 rounded-2xl shadow-xl mb-8">
+            <div id="verdict-icon" class="mb-6 mx-auto w-20 h-20 flex items-center justify-center rounded-full">
+                <!-- Icon will be injected here -->
+            </div>
+            <h2 id="verdict-text" class="text-4xl font-extrabold mb-4"></h2>
+        </div>
+
+        <p id="explanation-text" class="text-lg text-gray-700 mb-8"></p>
+        
+        <div class="flex items-center justify-between mb-8">
+            <span class="text-sm font-medium text-gray-600">Show Full Nutrition Data</span>
+            <!-- Toggle switch (visual only, for UI replication) -->
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" value="" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+        
+        <button id="scan-next-btn" class="w-full py-4 bg-gray-900 text-white font-semibold rounded-xl shadow-lg hover:bg-gray-700 transition duration-150">Scan Next Item</button>
+    </div>
+
+</div>
+
+<script type="module">
+    // Firebase Imports
+    // We only import them conditionally if the config is valid.
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
+    // --- Global State Variables ---
+    let currentStep = 1;
+    let diseaseProfile = '';
+    let healthTags = [];
+    let userId = null;
+    let db = null;
+    let auth = null;
+
+    // --- API Configuration (POINTS TO FLASK BACKEND) ---
+    const analyzeApiUrl = 'http://127.0.0.1:5000/analyze'; 
+
+    // Firestore Path Configuration
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const PROFILE_COLLECTION_NAME = 'profiles';
+    const FIREBASE_CONFIG_MISSING_MESSAGE = "Cannot connect to persistence service. Firebase configuration data is missing from the environment.";
+
+    // --- Utility Functions ---
+
+    /**
+     * Shows a status message overlay during long operations.
+     */
+    function setStatus(text, show, isError = false) {
+        const statusEl = document.getElementById('status-message');
+        const statusTextEl = document.getElementById('status-text');
+        const spinnerEl = document.getElementById('loading-spinner');
+        
+        statusTextEl.textContent = text;
+        
+        if (isError) {
+            statusTextEl.classList.add('text-red-600');
+            spinnerEl.classList.add('hidden'); // Hide spinner on error
+        } else {
+            statusTextEl.classList.remove('text-red-600');
+            if (show) {
+                spinnerEl.classList.remove('hidden'); // Show spinner on connect/analyze
+            } else {
+                spinnerEl.classList.add('hidden');
+            }
+        }
+
+        if (show) {
+            statusEl.classList.remove('hidden');
+            // Hide the main screen to prevent interaction
+            document.querySelectorAll('.step-screen').forEach(el => el.style.pointerEvents = 'none');
+        } else {
+            statusEl.classList.add('hidden');
+            document.querySelectorAll('.step-screen').forEach(el => el.style.pointerEvents = 'auto');
+        }
+    }
+
+    /**
+     * Handles exponential backoff for API calls.
+     */
+    async function fetchWithRetry(url, options, maxRetries = 5) {
+        let lastError = null;
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    if (response.status === 429 && i < maxRetries - 1) { // 429 Too Many Requests
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                        console.warn(`Rate limit hit. Retrying in ${Math.round(delay/1000)}s...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+                }
+                return response;
+            } catch (error) {
+                lastError = error;
+                console.error("Fetch failed:", error);
+                if (i === maxRetries - 1) {
+                    throw lastError;
+                }
+                if (i < maxRetries - 1) {
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+            }
+        }
+        throw new Error("Failed to fetch data after multiple retries.");
+    }
+
+    /**
+     * Renders the current step screen and hides all others.
+     */
+    function renderStep() {
+        document.querySelectorAll('.step-screen').forEach((screen, index) => {
+            if (index + 1 === currentStep) {
+                screen.classList.remove('hidden');
+            } else {
+                screen.classList.add('hidden');
+            }
+        });
+    }
+
+    // --- Firebase Initialization and Auth ---
+
+    async function initializeFirebase() {
+        setStatus("Connecting to user service...", true);
+        
+        let firebaseConfig = {};
+        let isConfigValid = false;
+        let isLocalMode = false;
+
+        try {
+            firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            // Check if essential keys exist 
+            if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+                isConfigValid = true;
+            }
+        } catch (e) {
+            console.error("Failed to parse firebase config:", e);
+        }
+
+        const authStatusEl = document.getElementById('auth-status');
+        const startBtn = document.getElementById('start-app-btn');
+        const userIdDisplay = document.getElementById('display-user-id');
+
+        if (!isConfigValid) {
+            // --- ENTER LOCAL TESTING MODE ---
+            isLocalMode = true;
+            userId = 'LOCAL_TEST_USER'; // Assign a dummy ID
+            authStatusEl.innerHTML = `<span class="text-yellow-600 font-bold">WARNING: Local Test Mode Active. Profile will not be saved.</span>`;
+            startBtn.disabled = false;
+            startBtn.classList.remove('bg-gray-400', 'hover:bg-gray-400');
+            startBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            userIdDisplay.textContent = userId;
+            setStatus('', false); // Hide loading
+            console.warn("Firebase configuration is missing. Running in local test mode.");
+            return; // Stop Firebase initialization
+        }
+
+        // --- AUTHENTICATE VIA FIREBASE (Only if config is valid) ---
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+
+            // Listen for auth state changes
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    userId = user.uid;
+                    authStatusEl.innerHTML = '<span class="text-green-600 font-bold">Successfully Connected</span>';
+                    startBtn.disabled = false;
+                    startBtn.classList.remove('bg-gray-400', 'hover:bg-gray-400');
+                    startBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    userIdDisplay.textContent = userId;
+                    
+                    loadUserProfile();
+                    setStatus('', false); 
+                } else {
+                    userId = null;
+                    authStatusEl.innerHTML = '<span class="text-red-600 font-bold">Authentication Failed</span>';
+                    startBtn.disabled = true;
+                    startBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    startBtn.classList.add('bg-gray-400');
+                    userIdDisplay.textContent = 'N/A';
+                    setStatus('', false);
+                }
+            });
+
+            // Attempt to sign in
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+
+        } catch (error) {
+            console.error("Firebase Initialization/Auth Error:", error);
+            const errorMessage = `Firebase Error: ${error.message.substring(0, 50)}...`;
+            document.getElementById('auth-status').innerHTML = `<span class="text-red-600 font-bold">${errorMessage}</span>`;
+            setStatus(errorMessage, true, true);
+        }
+    }
+
+    // --- Firestore Profile Management ---
+
+    function getUserProfileRef(uid) {
+        return doc(db, 'artifacts', appId, 'users', uid, PROFILE_COLLECTION_NAME, 'current');
+    }
+
+    async function saveUserProfile() {
+        if (!db) {
+            console.warn("Skipping profile save: Running in local test mode (Firebase not initialized).");
+            return;
+        }
+        
+        const profileData = {
+            diseaseProfile: diseaseProfile,
+            healthTags: healthTags,
+            lastUpdated: new Date().toISOString()
+        };
+        
+        try {
+            await setDoc(getUserProfileRef(userId), profileData);
+            console.log("Profile saved successfully.");
+        } catch (error) {
+            console.error("Error saving profile:", error);
+        }
+    }
+
+    async function loadUserProfile() {
+        if (!db) {
+            console.warn("Skipping profile load: Running in local test mode (Firebase not initialized).");
+            return;
+        }
+
+        try {
+            const profileSnap = await getDoc(getUserProfileRef(userId));
+            if (profileSnap.exists()) {
+                const data = profileSnap.data();
+                diseaseProfile = data.diseaseProfile || '';
+                healthTags = data.healthTags || [];
+                
+                document.getElementById('disease-input').value = diseaseProfile;
+                renderTags();
+                console.log("Profile loaded successfully.");
+            } else {
+                console.log("No existing profile found.");
+            }
+        } catch (error) {
+            console.error("Error loading profile:", error);
+        }
+    }
+
+
+    // --- Step 1: Login/Welcome Logic ---
+
+    document.getElementById('start-app-btn').addEventListener('click', () => {
+        // userId check works for both Firebase (user.uid) and Local Test Mode (LOCAL_TEST_USER)
+        if (userId) {
+            currentStep = 2; // Move to Onboarding
+            renderStep();
+        } else {
+            // Should be caught by the initialization logic, but this is a safety net
+            setStatus("Authentication is still in progress. Please wait.", true);
+            setTimeout(() => setStatus('', false), 3000);
+        }
+    });
+
+    // --- Step 2: Onboarding Logic ---
+
+    document.getElementById('submit-profile-btn').addEventListener('click', () => {
+        diseaseProfile = document.getElementById('disease-input').value.trim();
+        if (diseaseProfile.length < 10) {
+            setStatus("Please provide a more detailed description of your health profile.", true);
+            setTimeout(() => setStatus('', false), 3000);
+            return;
+        }
+
+        // Simple heuristic to generate tags for demonstration (real-world uses AI)
+        const suggestedKeywords = ['diabetic', 'diabetes', 'high blood pressure', 'cholesterol', 'celiac disease', 'peanut allergy', 'shellfish allergy', 'low sodium', 'vegan', 'keto', 'nut allergy', 'lactose intolerant'];
+        const profileLower = diseaseProfile.toLowerCase();
+        
+        // Filter suggested keywords and create tags
+        healthTags = suggestedKeywords.filter(keyword => profileLower.includes(keyword)).map(tag => {
+            return tag.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        });
+
+        if (healthTags.length === 0) {
+            healthTags.push("General Dietary Goals");
+        }
+
+        saveUserProfile();
+
+        currentStep = 3; // Move to Confirmation
+        renderStep();
+        renderTags();
+    });
+
+    // --- Step 3: Confirmation Logic ---
+
+    function renderTags() {
+        const container = document.getElementById('tag-container');
+        container.innerHTML = '';
+        
+        healthTags.forEach(tag => {
+            const tagEl = document.createElement('div');
+            tagEl.className = 'flex items-center bg-green-100 text-green-700 text-sm font-medium px-4 py-2 rounded-full cursor-pointer';
+            tagEl.innerHTML = `
+                <span class="mr-2">[TAG]</span>
+                <span class="tag-name">${tag}</span>
+                <!-- SVG Icon for Remove (X) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 w-4 h-4 text-red-600 hover:text-red-800 transition duration-150" data-tag="${tag}">
+                    <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
+                </svg>
+            `;
+            container.appendChild(tagEl);
+            
+            // Add removal listener
+            tagEl.querySelector('svg').addEventListener('click', (e) => {
+                const tagToRemove = e.currentTarget.getAttribute('data-tag');
+                healthTags = healthTags.filter(t => t !== tagToRemove);
+                renderTags();
+                saveUserProfile();
+            });
+        });
+    }
+
+    document.getElementById('add-tag-btn').addEventListener('click', () => {
+        const input = document.getElementById('manual-tag-input');
+        const newTag = input.value.trim();
+        if (newTag && !healthTags.includes(newTag)) {
+            healthTags.push(newTag.charAt(0).toUpperCase() + newTag.slice(1).toLowerCase());
+            input.value = '';
+            renderTags();
+            saveUserProfile();
+        }
+    });
+
+    document.getElementById('confirm-scanning-btn').addEventListener('click', () => {
+        if (healthTags.length === 0) {
+            setStatus("Please add at least one health condition or goal to your profile.", true);
+            setTimeout(() => setStatus('', false), 3000);
+            return;
+        }
+        currentStep = 4; // Move to Scan & Analyze
+        document.getElementById('scanned-image-preview').classList.add('hidden');
+        document.getElementById('scan-box').querySelector('p').classList.remove('hidden');
+        document.getElementById('image-upload').value = '';
+        renderStep();
+    });
+
+    // --- Step 4: Scan & Analyze Logic ---
+    
+    document.getElementById('select-image-btn').addEventListener('click', () => {
+        document.getElementById('image-upload').click();
+    });
+
+    document.getElementById('image-upload').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const previewEl = document.getElementById('scanned-image-preview');
+            previewEl.src = URL.createObjectURL(file);
+            previewEl.classList.remove('hidden');
+            document.getElementById('scan-box').querySelector('p').classList.add('hidden');
+        }
+    });
+
+    document.getElementById('analyze-btn').addEventListener('click', analyzeProduct);
+
+    async function analyzeProduct() {
+        const imageInput = document.getElementById('image-upload');
+        const imageFile = imageInput.files[0];
+
+        if (!imageFile) {
+            setStatus("Please select an image of the nutrition facts label first.", true);
+            setTimeout(() => setStatus('', false), 3000);
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', imageFile); 
+        const diseasesString = healthTags.join(', ');
+        formData.append('diseases', diseasesString);
+
+        setStatus("Analyzing product....", true);
+
+        try {
+            const response = await fetchWithRetry(analyzeApiUrl, {
+                method: 'POST',
+                body: formData 
+            });
+
+            const resultText = await response.text();
+            let aiAnalysis;
+            
+            try {
+                aiAnalysis = JSON.parse(resultText);
+            } catch (e) {
+                console.error("Failed to parse AI JSON response:", resultText, e);
+                aiAnalysis = { 
+                    recommendation: 'Error',
+                    explanation: `Backend error or malformed response. Status: ${response.status}`,
+                    category: 'Unknown'
+                };
+            }
+            
+            const frontendVerdict = {
+                'Safe': 'OK',
+                'Not Safe': 'AVOID',
+                'Caution': 'CAUTION',
+                'Error': 'ERROR'
+            }[aiAnalysis.recommendation] || 'ERROR';
+
+            displayVerdict(frontendVerdict, aiAnalysis.explanation, aiAnalysis.category);
+
+        } catch (error) {
+            console.error("API Call Error:", error);
+            displayVerdict('ERROR', "There was an error connecting to the analysis service. Is the Flask server running?", 'Network Error');
+        } finally {
+            setStatus('', false);
+        }
+    }
+
+    // --- Step 5: Verdict Logic ---
+
+    function displayVerdict(verdict, explanation, category) {
+        const verdictCard = document.getElementById('verdict-card');
+        const verdictIcon = document.getElementById('verdict-icon');
+        const verdictText = document.getElementById('verdict-text');
+        const explanationText = document.getElementById('explanation-text');
+        const categoryText = document.getElementById('category-text');
+
+        verdictText.textContent = verdict.toUpperCase();
+        explanationText.textContent = explanation;
+        categoryText.textContent = `Product Category: ${category}`;
+
+        verdictCard.className = 'p-8 rounded-2xl shadow-xl mb-8 transition duration-300 ease-in-out';
+        verdictIcon.className = 'mb-6 mx-auto w-20 h-20 flex items-center justify-center rounded-full text-white';
+        let iconSVG = '';
+
+        if (verdict.toUpperCase() === 'AVOID') {
+            verdictCard.classList.add('bg-red-50');
+            verdictIcon.classList.add('bg-red-600');
+            iconSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6L6 18"/><path d="m6 6 12 12"/>
+                </svg>`;
+        } else if (verdict.toUpperCase() === 'OK') {
+            verdictCard.classList.add('bg-green-50');
+            verdictIcon.classList.add('bg-green-600');
+            iconSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 6 9 17l-5-5"/>
+                </svg>`;
+        } else if (verdict.toUpperCase() === 'CAUTION') {
+             verdictCard.classList.add('bg-yellow-50');
+            verdictIcon.classList.add('bg-yellow-600');
+             iconSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h18.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>`;
+        } else { // ERROR case
+            verdictCard.classList.add('bg-gray-200');
+            verdictIcon.classList.add('bg-gray-500');
+            verdictText.textContent = 'ERROR';
+             iconSVG = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+                </svg>`;
+        }
+        
+        verdictIcon.innerHTML = iconSVG;
+        currentStep = 5;
+        renderStep();
+    }
+    
+    document.getElementById('scan-next-btn').addEventListener('click', () => {
+        currentStep = 4; // Go back to Scan & Analyze
+        document.getElementById('scanned-image-preview').classList.add('hidden');
+        document.getElementById('scan-box').querySelector('p').classList.remove('hidden');
+        document.getElementById('image-upload').value = ''; 
+        renderStep();
+    });
+
+    // Initialize the app on load
+    window.onload = () => {
+        initializeFirebase();
+        renderStep();
+    };
+
+</script>
+
+</body>
+</html>
