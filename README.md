@@ -6,47 +6,6 @@ A comprehensive health and safety analysis platform that uses AI-powered image r
 
 **LabelWise** is an intelligent product safety analyzer that helps users make informed purchasing decisions by scanning product labels (nutrition facts, ingredients, medication information) and comparing them against their personal health conditions and dietary restrictions.
 
-### Key Features
-
-- 🤖 **AI-Powered Analysis**: Uses Google's Gemini 2.0 Flash model for intelligent product categorization and safety assessment
-- 🏥 **Health-Conscious**: Personalized recommendations based on user health conditions (diabetes, allergies, hypertension, etc.)
-- 📷 **Image Recognition**: Analyzes nutrition facts, ingredients, and medication information from product images
-- 🔒 **Secure & Private**: Firebase authentication and Firestore for secure data persistence
-- 📱 **Cross-Platform**: Web interface and Flutter mobile applications
-- ⚡ **Real-Time Analysis**: Instant product safety verdicts with detailed explanations
-
-## 📋 Project Structure
-
-```
-PRPL/
-├── PRPL_Backend.py                 # Flask backend API server
-├── index.html                      # Web application (HTML + JavaScript)
-├── milk-nutrition-facts.avif       # Sample product image
-│
-├── nutrition_facts_application/    # Main Flutter app
-│   ├── lib/
-│   │   └── main.dart
-│   ├── android/                    # Android build configuration
-│   ├── ios/                        # iOS build configuration
-│   ├── windows/                    # Windows build configuration
-│   ├── linux/                      # Linux build configuration
-│   ├── macos/                      # macOS build configuration
-│   ├── web/                        # Web build configuration
-│   └── pubspec.yaml               # Flutter dependencies
-│
-├── nutrition_facts_application/labelwise_flutter/  # Alternative Flutter app
-│   ├── lib/
-│   │   └── main.dart
-│   ├── android/
-│   ├── ios/
-│   ├── windows/
-│   ├── linux/
-│   ├── macos/
-│   └── pubspec.yaml
-│
-└── labelwisebackend.py             # Additional backend processing
-```
-
 ## 🛠️ Technology Stack
 
 ### Backend
@@ -176,117 +135,6 @@ curl -X POST http://localhost:5000/analyze \
 - **API Key Protection**: Gemini API key should be protected using environment variables in production
 - **No Personal Health Records**: Health information stored only for analysis context
 
-## 📦 Files to Upload to GitHub
-
-### Essential Files (Required)
-```
-✅ PRPL_Backend.py              # Backend API server
-✅ index.html                   # Web application
-✅ nutrition_facts_application/ # Main Flutter app (entire directory)
-✅ labelwise_flutter/           # Alternative Flutter app (entire directory)
-✅ labelwisebackend.py          # Additional backend logic
-✅ README.md                    # Project documentation
-✅ .gitignore                   # Git ignore rules
-```
-
-### Optional Files (Recommended)
-```
-✅ milk-nutrition-facts.avif    # Sample/test image
-✅ pubspec.yaml (if root level) # Root-level dependencies
-```
-
-### Files to EXCLUDE from GitHub
-```
-❌ build/                       # Build artifacts and cache
-❌ .gradle/                     # Gradle cache
-❌ .dart_tool/                  # Flutter/Dart tool cache
-❌ __pycache__/                 # Python cache
-❌ .env                         # Environment variables (API keys)
-❌ local.properties             # Local Android configuration
-❌ *.apk / *.ipa               # Build outputs
-❌ node_modules/                # Node dependencies (if any)
-❌ .flutter-plugins-dependencies
-❌ .packages
-❌ pubspec.lock (per best practices, optional)
-```
-
-## 📝 Recommended .gitignore
-
-Create a `.gitignore` file in the root:
-
-```
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Flask
-instance/
-.webassets-cache
-
-# Flutter
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-pubspec.lock
-build/
-ios/Pods/
-ios/Podfile.lock
-android/.gradle/
-android/local.properties
-android/.classpath
-android/.project
-android/.settings/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Environment
-.env
-.env.local
-
-# Firebase
-firebase-debug.log
-.firebaserc
-```
-
-## 🔧 Environment Variables
-
-Create a `.env` file (do NOT commit to GitHub):
-
-```
-GEMINI_API_KEY=your_gemini_api_key_here
-FLASK_ENV=development
-FLASK_DEBUG=True
-```
-
-For production, set these as environment variables on your server.
 
 ## 📱 Demo & Testing
 
@@ -311,13 +159,14 @@ curl -X POST http://localhost:5000/analyze \
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see LICENSE file for details.
 
 ## 👥 Authors
 
-- **Omar Ariawan** - Lead Developer
+- **M Shaquille Omar Ariawan** 
+- **Putra Mulia Arhidana R**
+- **Muhammad Faiz**
+- **Radityha Farrel F**
+- **M Rafif Akio**
 
 ## 🙏 Acknowledgments
 
@@ -326,26 +175,9 @@ This project is licensed under the MIT License - see LICENSE file for details.
 - Flutter team for cross-platform mobile development
 - Tailwind CSS for responsive UI design
 
-## 📧 Contact & Support
-
-For issues, questions, or suggestions:
-- GitHub Issues: [Create an issue](https://github.com/omarariawan/PRPL/issues)
-- Email: your-email@example.com
-
-## 🗺️ Roadmap
-
-- [ ] Advanced nutrition tracking dashboard
-- [ ] User health history and analytics
-- [ ] Integration with popular health apps
-- [ ] Offline mode for mobile apps
-- [ ] Multi-language support
-- [ ] Barcode/QR code scanning
-- [ ] Prescription drug interaction checker
-- [ ] Recipe analysis based on health profile
-- [ ] Community sharing and reviews
-- [ ] Machine learning model for improved accuracy
 
 ---
 
 **Last Updated**: November 2025  
 **Status**: Active Development
+
